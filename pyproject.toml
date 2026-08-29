@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "atlas-core"
+version = "0.1.1"
+description = "Core orchestration runtime for Atlas"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.8,<3"
+]
+
+[project.scripts]
+atlas = "atlas.main:main"
+
+[tool.setuptools.packages.find]
+include = ["atlas*"]
