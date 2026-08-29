@@ -3,10 +3,17 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from atlas.protocol import ToolCallAction, parse_action
+from atlas.protocol import (
+    RouteAction,
+    ToolCallAction,
+    parse_action,
+    parse_controller_action,
+    parse_tool_specialist_action,
+)
 from atlas.registries import ApplicationRegistry, DeviceRegistry
 from atlas.tools import build_mock_tool_registry
 from atlas.trace import AtlasTracer, redact_sensitive
+from atlas.runtime import ModelSpec
 from pydantic import ValidationError
 
 
@@ -276,5 +283,94 @@ class TraceTests(
             )
 
 
-if __name__ == "__main__":
-    unittest.main()
+class MultiModelProtocolTests(
+    unittest.TestCase
+):
+    def test_controller_route_parses(
+        self,
+    ) -> None:
+        action = parse_controller_action(
+            '{"type":"route",'
+            '"target":"atlas_tools",'
+            '"request":"Open Steam."}'
+        )
+
+        self.assertIsInstance(
+            action,
+            RouteAction,
+        )
+
+        self.assertEqual(
+            action.target,
+            "atlas_tools",
+        )
+
+    def test_tool_specialist_rejects_delegate(
+        self,
+    ) -> None:
+        with self.assertRaises(
+            ValidationError
+        ):
+            parse_tool_specialist_action(
+                '{"type":"delegate",'
+                '"target":"general_ai",'
+                '"request":"Explain black holes."}'
+            )
+
+    def test_ram_mode_forces_cpu(
+        self,
+    ) -> None:
+        spec = ModelSpec(
+            model="test",
+            residency="persistent",
+            memory="ram",
+        )
+
+        self.assertEqual(
+            spec.ollama_options(),
+            {
+                "num_gpu": 0,
+            },
+        )
+
+    def test_vram_mode_requests_gpu_offload(
+        self,
+    ) -> None:
+        spec = ModelSpec(
+            model="test",
+            residency="persistent",
+            memory="vram",
+        )
+
+        self.assertEqual(
+            spec.ollama_options(),
+            {
+                "num_gpu": -1,
+            },
+        )
+
+    def test_on_demand_unloads_after_request(
+        self,
+    ) -> None:
+        spec = ModelSpec(
+            model="test",
+            residency="on_demand",
+            memory="auto",
+        )
+
+        self.assertEqual(
+            spec.effective_keep_alive(),
+            0,
+        )
+
+    def test_hybrid_requires_gpu_layer_count(
+        self,
+    ) -> None:
+        with self.assertRaises(
+            ValidationError
+        ):
+            ModelSpec(
+                model="test",
+                residency="persistent",
+                memory="hybrid",
+            )

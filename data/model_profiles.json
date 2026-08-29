@@ -1,0 +1,126 @@
+{
+  "active_profile": "desktop_3060_balanced",
+  "profiles": {
+    "desktop_3060_balanced": {
+      "controller": {
+        "model": "qwen3.5:4b",
+        "residency": "persistent",
+        "memory": "vram",
+        "think": false,
+        "temperature": 0.0
+      },
+      "tools": {
+        "model": "qwen3:1.7b",
+        "residency": "persistent",
+        "memory": "vram",
+        "think": false,
+        "temperature": 0.0
+      },
+      "general": {
+        "model": "qwen3:8b",
+        "residency": "cached",
+        "memory": "auto",
+        "cache_duration": "30m",
+        "think": false,
+        "temperature": 0.4
+      }
+    },
+
+    "desktop_3060_all_loaded": {
+      "controller": {
+        "model": "qwen3.5:4b",
+        "residency": "persistent",
+        "memory": "vram",
+        "think": false,
+        "temperature": 0.0
+      },
+      "tools": {
+        "model": "qwen3:1.7b",
+        "residency": "persistent",
+        "memory": "vram",
+        "think": false,
+        "temperature": 0.0
+      },
+      "general": {
+        "model": "qwen3:8b",
+        "residency": "persistent",
+        "memory": "auto",
+        "think": false,
+        "temperature": 0.4
+      }
+    },
+
+    "desktop_3060_swap": {
+      "controller": {
+        "model": "qwen3.5:4b",
+        "residency": "persistent",
+        "memory": "vram",
+        "think": false,
+        "temperature": 0.0
+      },
+      "tools": {
+        "model": "qwen3:1.7b",
+        "residency": "on_demand",
+        "memory": "vram",
+        "think": false,
+        "temperature": 0.0
+      },
+      "general": {
+        "model": "qwen3:8b",
+        "residency": "on_demand",
+        "memory": "auto",
+        "think": false,
+        "temperature": 0.4
+      }
+    },
+
+    "desktop_3060_general_in_ram": {
+      "controller": {
+        "model": "qwen3.5:4b",
+        "residency": "persistent",
+        "memory": "vram",
+        "think": false,
+        "temperature": 0.0
+      },
+      "tools": {
+        "model": "qwen3:1.7b",
+        "residency": "persistent",
+        "memory": "vram",
+        "think": false,
+        "temperature": 0.0
+      },
+      "general": {
+        "model": "qwen3:8b",
+        "residency": "persistent",
+        "memory": "ram",
+        "think": false,
+        "temperature": 0.4
+      }
+    },
+
+    "desktop_3060_hybrid_general": {
+      "controller": {
+        "model": "qwen3.5:4b",
+        "residency": "persistent",
+        "memory": "vram",
+        "think": false,
+        "temperature": 0.0
+      },
+      "tools": {
+        "model": "qwen3:1.7b",
+        "residency": "persistent",
+        "memory": "vram",
+        "think": false,
+        "temperature": 0.0
+      },
+      "general": {
+        "model": "qwen3:8b",
+        "residency": "persistent",
+        "memory": "hybrid",
+        "num_gpu_layers": 12,
+        "think": false,
+        "temperature": 0.4
+      }
+    }
+  }
+}

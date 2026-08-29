@@ -159,6 +159,68 @@ class AtlasTracer:
         event: str,
         data: dict[str, Any],
     ) -> None:
+        # Runtime model lifecycle events
+        if event == "model_preload":
+            print(
+                "[TRACE] RUNTIME -> PRELOAD "
+                f"{data.get('role')} "
+                f"({data.get('model')}) "
+                f"[{data.get('memory')}]"
+            )
+            return
+
+        if event == "model_unload":
+            print(
+                "[TRACE] RUNTIME -> UNLOAD "
+                f"{data.get('role')} "
+                f"({data.get('model')})"
+            )
+            return
+
+        if event == "model_request":
+            print(
+                "[TRACE] RUNTIME -> MODEL "
+                f"{data.get('role')} "
+                f"({data.get('model')})"
+            )
+            return
+
+        if event == "model_response":
+            load_ms = data.get(
+                "load_duration_ms"
+            )
+
+            total_ms = data.get(
+                "total_duration_ms"
+            )
+
+            print(
+                "[TRACE] MODEL -> RUNTIME "
+                f"{data.get('role')} "
+                f"load={load_ms}ms "
+                f"total={total_ms}ms"
+            )
+            return
+
+        if event == "controller_action":
+            action_type = data.get(
+                "type",
+                "unknown",
+            )
+
+            if action_type == "route":
+                print(
+                    "[TRACE] CONTROLLER -> ROUTE "
+                    f"{data.get('target')}"
+                )
+            else:
+                print(
+                    "[TRACE] CONTROLLER -> "
+                    f"{str(action_type).upper()}"
+                )
+            return
+
+        # Model action events (from tools model)
         if event == "model_action":
             action_type = data.get(
                 "type",
@@ -167,7 +229,7 @@ class AtlasTracer:
 
             if action_type == "tool_call":
                 print(
-                    "[TRACE] MODEL -> TOOL_CALL "
+                    "[TRACE] TOOLS -> TOOL_CALL "
                     f"{data.get('name')}"
                 )
                 print(
@@ -183,7 +245,7 @@ class AtlasTracer:
                 return
 
             print(
-                "[TRACE] MODEL -> "
+                "[TRACE] TOOLS -> "
                 f"{str(action_type).upper()}"
             )
             return
@@ -240,5 +302,3 @@ class AtlasTracer:
             print(
                 "[TRACE] CORE -> ACTION LIMIT REACHED"
             )
-
-

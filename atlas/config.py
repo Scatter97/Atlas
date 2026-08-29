@@ -7,23 +7,28 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class Config:
     ollama_base_url: str
-    ollama_model: str
     model_timeout_seconds: float
     max_actions_per_request: int
     trace_enabled: bool
-
+    model_profile: str | None
 
     @classmethod
     def from_env(cls) -> "Config":
+        selected_profile = os.getenv(
+            "ATLAS_MODEL_PROFILE"
+        )
+
+        if selected_profile is not None:
+            selected_profile = (
+                selected_profile.strip()
+                or None
+            )
+
         return cls(
             ollama_base_url=os.getenv(
                 "OLLAMA_BASE_URL",
                 "http://127.0.0.1:11434",
             ).rstrip("/"),
-            ollama_model=os.getenv(
-                "OLLAMA_MODEL",
-                "qwen3.5:4b",
-            ),
             model_timeout_seconds=float(
                 os.getenv(
                     "ATLAS_MODEL_TIMEOUT_SECONDS",
@@ -48,4 +53,5 @@ class Config:
                     "off",
                 }
             ),
+            model_profile=selected_profile,
         )

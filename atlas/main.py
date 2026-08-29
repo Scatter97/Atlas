@@ -4,14 +4,22 @@ from pathlib import Path
 
 from atlas.config import Config
 from atlas.core import AtlasCore
-from atlas.model import ModelBackendError, OllamaBackend
+from atlas.model import ModelBackendError
 from atlas.protocol import (
     ClarifyAction,
     DelegateAction,
     FinalAction,
 )
-from atlas.registries import ApplicationRegistry, DeviceRegistry
-from atlas.tools import build_mock_tool_registry
+from atlas.registries import (
+    ApplicationRegistry,
+    DeviceRegistry,
+)
+from atlas.runtime import (
+    ModelRuntimeManager,
+)
+from atlas.tools import (
+    build_mock_tool_registry,
+)
 from atlas.trace import AtlasTracer
 
 
@@ -29,10 +37,12 @@ def build_core(
         / "devices.json"
     )
 
-    applications = ApplicationRegistry.from_file(
-        PROJECT_ROOT
-        / "data"
-        / "applications.json"
+    applications = (
+        ApplicationRegistry.from_file(
+            PROJECT_ROOT
+            / "data"
+            / "applications.json"
+        )
     )
 
     tools = build_mock_tool_registry(
@@ -40,37 +50,97 @@ def build_core(
         applications=applications,
     )
 
-    model = OllamaBackend(
-        base_url=config.ollama_base_url,
-        model=config.ollama_model,
-        timeout_seconds=config.model_timeout_seconds,
+    tracer = AtlasTracer(
+        terminal_enabled=(
+            config.trace_enabled
+        ),
     )
 
-    tracer = AtlasTracer(
-        terminal_enabled=config.trace_enabled,
+    runtime = ModelRuntimeManager.from_file(
+        path=(
+            PROJECT_ROOT
+            / "data"
+            / "model_profiles.json"
+        ),
+        ollama_base_url=(
+            config.ollama_base_url
+        ),
+        timeout_seconds=(
+            config.model_timeout_seconds
+        ),
+        tracer=tracer,
+        selected_profile=(
+            config.model_profile
+        ),
     )
 
     return AtlasCore(
-        model=model,
+        runtime=runtime,
         tools=tools,
         devices=devices,
         applications=applications,
-        prompt_path=(
+        controller_prompt_path=(
+            PROJECT_ROOT
+            / "prompts"
+            / "controller.txt"
+        ),
+        tool_prompt_path=(
             PROJECT_ROOT
             / "prompts"
             / "tool_controller.txt"
         ),
+        general_prompt_path=(
+            PROJECT_ROOT
+            / "prompts"
+            / "general_ai.txt"
+        ),
         tracer=tracer,
-        max_actions_per_request=config.max_actions_per_request,
+        max_actions_per_request=(
+            config.max_actions_per_request
+        ),
     )
+
+
+def print_runtime_summary(
+    core: AtlasCore,
+) -> None:
+    print(
+        "Model profile: "
+        f"{core.runtime.profile_name}"
+    )
+
+    for item in core.runtime.summary():
+        role = item["role"]
+        model = item["model"]
+        residency = item["residency"]
+        memory = item["memory"]
+
+        print(
+            f"  {role}: {model} "
+            f"[{residency}, {memory}]"
+        )
 
 
 def main() -> None:
     config = Config.from_env()
-    core = build_core(config)
 
-    print("Atlas Core v0.1.1")
-    print(f"Model: {config.ollama_model}")
+    try:
+        core = build_core(
+            config
+        )
+    except (
+        ValueError,
+        OSError,
+    ) as exc:
+        print(
+            f"Configuration error: {exc}"
+        )
+        return
+
+    print("Atlas Core v0.2.0")
+    print_runtime_summary(
+        core
+    )
     print("Mock tools enabled.")
     print(
         "Developer trace: "
@@ -80,6 +150,20 @@ def main() -> None:
             else "disabled"
         )
     )
+
+    print(
+        "Preloading persistent models..."
+    )
+
+    try:
+        core.preload_models()
+    except ModelBackendError as exc:
+        print(
+            f"Core error while preloading: {exc}"
+        )
+        return
+
+    print("Atlas ready.")
     print("Type 'exit' to quit.")
 
     while True:
@@ -116,6 +200,12 @@ def main() -> None:
             )
             continue
 
+        except Exception as exc:
+            print(
+                f"Core error: {exc}"
+            )
+            continue
+
         if isinstance(
             action,
             FinalAction,
@@ -138,7 +228,8 @@ def main() -> None:
         ):
             print(
                 "Atlas delegation: "
-                f"{action.target} -> {action.request}"
+                f"{action.target} -> "
+                f"{action.request}"
             )
 
         else:

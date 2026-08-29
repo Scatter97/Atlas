@@ -68,3 +68,72 @@ def action_json_schema() -> dict[str, Any]:
 
 def parse_action(raw_json: str) -> Action:
     return ACTION_ADAPTER.validate_json(raw_json)
+
+
+# ----------------------------------------------------------------------
+# New controller / tool specialist protocol extensions
+# ----------------------------------------------------------------------
+
+
+class RouteAction(StrictModel):
+    type: Literal["route"]
+    target: Literal[
+        "atlas_tools",
+        "general_ai",
+        "computer_ai",
+        "research_ai",
+    ]
+    request: str = Field(min_length=1)
+
+
+ControllerAction = Annotated[
+    Union[
+        RouteAction,
+        ClarifyAction,
+        FinalAction,
+    ],
+    Field(discriminator="type"),
+]
+
+
+ToolSpecialistAction = Annotated[
+    Union[
+        ToolCallAction,
+        ClarifyAction,
+        FinalAction,
+    ],
+    Field(discriminator="type"),
+]
+
+
+CONTROLLER_ACTION_ADAPTER = TypeAdapter(
+    ControllerAction
+)
+
+TOOL_SPECIALIST_ACTION_ADAPTER = TypeAdapter(
+    ToolSpecialistAction
+)
+
+
+def controller_action_json_schema() -> dict[str, Any]:
+    return CONTROLLER_ACTION_ADAPTER.json_schema()
+
+
+def parse_controller_action(
+    raw_json: str,
+) -> ControllerAction:
+    return CONTROLLER_ACTION_ADAPTER.validate_json(
+        raw_json
+    )
+
+
+def tool_specialist_action_json_schema() -> dict[str, Any]:
+    return TOOL_SPECIALIST_ACTION_ADAPTER.json_schema()
+
+
+def parse_tool_specialist_action(
+    raw_json: str,
+) -> ToolSpecialistAction:
+    return TOOL_SPECIALIST_ACTION_ADAPTER.validate_json(
+        raw_json
+    )
