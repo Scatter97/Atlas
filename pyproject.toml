@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "atlas-core"
-version = "0.2.0"
+version = "0.3.0"
 description = "Core orchestration runtime for Atlas"
 requires-python = ">=3.11"
 dependencies = [
@@ -16,3 +16,14 @@ atlas = "atlas.main:main"
 
 [tool.setuptools.packages.find]
 include = ["atlas*"]
+
+[project.optional-dependencies]
+training = [
+    "torch>=2.7,<3",
+    "transformers>=4.55,<5",
+    "datasets>=3.0,<5",
+    "trl>=0.20,<1",
+    "peft>=0.17,<1",
+    "accelerate>=1.0,<2",
+    "bitsandbytes>=0.47,<1",
+]
