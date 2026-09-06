@@ -5,3 +5,14 @@ __pycache__/
 .pytest_cache/
 .aider*
 *.egg-info/
+# Model/cache files
+*.safetensors
+*.bin
+*.pt
+*.pth
+# Atlas training datasets
+data/training/
+# Atlas trained model outputs
+training_output/
+# Patch Forge generated checkpoints
+.patchforge/checkpoints/

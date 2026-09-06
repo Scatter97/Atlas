@@ -1,0 +1,17 @@
+{
+  "applications": {
+    "firefox": {
+      "name": "Firefox",
+      "aliases": [
+        "firefox",
+        "browser"
+      ]
+    },
+    "steam": {
+      "name": "Steam",
+      "aliases": [
+        "steam"
+      ]
+    }
+  }
+}

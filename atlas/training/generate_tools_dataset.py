@@ -196,6 +196,8 @@ Never invent tool results.
 Never claim success before a successful TOOL_RESULT.
 Use one tool per turn.
 Do not delegate.
+A request that merely mentions an action is not automatically permission to perform it.
+Ask for clarification when an essential target is genuinely ambiguous.
 Keep final responses concise.
 User-owned resources are "your" resources.
 """
@@ -428,6 +430,119 @@ TRAIN_PHRASES = {
 }
 
 
+TRAIN_PHRASES["device_list"].extend([
+    "What machines have I got?",
+    "Show me what computers are hooked up.",
+    "What can you see device-wise?",
+    "Give me the devices you know about.",
+    "What boxes are registered with Atlas?",
+    "Which of my computers are available?",
+])
+
+TRAIN_PHRASES["device_get_status"].extend([
+    "Is {device} alive?",
+    "Can {device} hear you?",
+    "See if {device} is there.",
+    "Is {device} reachable right now?",
+    "Check if {device} is still around.",
+    "See whether {device} is responding for me.",
+])
+
+TRAIN_PHRASES["application_list"].extend([
+    "What can you open for me?",
+    "What software do you know how to start?",
+    "Show me the apps you know.",
+    "What programs are hooked into Atlas?",
+    "What apps can you work with right now?",
+    "Give me the software you have access to.",
+])
+
+TRAIN_PHRASES["computer_launch_application"].extend([
+    "Throw {app} up on the {device}.",
+    "Get {app} going on {device}.",
+    "Pop {app} open on my {device}.",
+    "Can you bring {app} up on {device}?",
+    "I want {app} up on the {device}.",
+    "Go ahead and start {app} over on {device}.",
+    "{app} on my {device}, please.",
+    "Get me into {app} on the {device}.",
+])
+
+TRAIN_PHRASES["computer_close_application"].extend([
+    "Kill {app} on the {device}.",
+    "Get rid of {app} on my {device}.",
+    "Take {app} down on the {device}.",
+    "Can you get {app} closed on {device}?",
+    "I'm done with {app} on my {device}.",
+    "Knock {app} off on the {device}.",
+    "Close out of {app} on {device}.",
+    "Get {app} off my {device}.",
+])
+
+TRAIN_PHRASES["computer_list_running_applications"].extend([
+    "What's up on my {device} right now?",
+    "Anything running on the {device}?",
+    "What have I got open on {device}?",
+    "What's currently up on my {device}?",
+    "Tell me what's running over on {device}.",
+    "What programs have I got going on the {device}?",
+    "Show me what's open over there on {device}.",
+    "What's active on my {device}?",
+])
+
+TRAIN_PHRASES["computer_get_volume"].extend([
+    "What's my {device} sitting at volume-wise?",
+    "How loud have I got the {device}?",
+    "Where's the sound at on {device}?",
+    "What's {device} at for audio?",
+    "Check how loud my {device} is set.",
+    "What percent is the sound on {device}?",
+    "Give me the current audio level on my {device}.",
+    "Where's my {device} volume sitting?",
+])
+
+TRAIN_PHRASES["computer_set_volume"].extend([
+    "Put {device} at {volume}%.",
+    "Bring the {device} down to {volume}% volume.",
+    "Make my {device} {volume}% loud.",
+    "Can you put {device} on {volume}% volume?",
+    "I want the sound at {volume}% on {device}.",
+    "Move my {device} audio to {volume}%.",
+    "Set {device} audio at {volume}% for me.",
+    "Make it {volume}% on my {device}.",
+])
+
+TRAIN_PHRASES["timer_create"].extend([
+    "Give me {duration} on the clock.",
+    "Count down {duration} for me.",
+    "I need {duration} on a countdown.",
+    "Can you give me a {duration} timer?",
+    "Put {duration} on a timer for me.",
+    "Start counting down {duration}.",
+    "Give me a timer for the next {duration}.",
+    "Clock {duration} for me.",
+])
+
+TRAIN_PHRASES["timer_list"].extend([
+    "What countdowns have I got going?",
+    "Anything on the clock right now?",
+    "What timers have I got active?",
+    "Show me what's counting down.",
+    "What do I currently have timed?",
+    "Any timers running right now?",
+])
+
+TRAIN_PHRASES["timer_cancel"].extend([
+    "Kill {timer_id}.",
+    "Get {timer_id} off the clock.",
+    "Drop timer {timer_id}.",
+    "I don't need {timer_id} anymore.",
+    "Can you stop {timer_id} for me?",
+    "End the countdown {timer_id}.",
+    "Remove {timer_id} from my timers.",
+    "Shut off {timer_id}.",
+])
+
 EVAL_PHRASES = {
     "device_list": [
         "Give me a rundown of my devices.",
@@ -520,7 +635,7 @@ HARD_NEGATIVE_TRAIN = [
     "Do not cancel {timer_id}.",
     "Leave {app} running on {device}.",
     "Don't close {app} on {device}.",
-    "I wonder if {app} is running on {device}.",
+    "Don't check whether {app} is running on {device}.",
     "I'll probably open {app} on {device} myself.",
     "No need to touch {device}.",
     "I'm talking about opening {app}, not asking you to do it.",
@@ -615,6 +730,62 @@ CLARIFICATIONS = [
     "Which machine should I use?",
 ]
 
+
+AMBIGUITY_TRAIN_V021 = [
+    {"tool_name": "computer_launch_application", "template": "Open {app} on my computer.", "missing": "device"},
+    {"tool_name": "computer_launch_application", "template": "Start {app} for me.", "missing": "device"},
+    {"tool_name": "computer_launch_application", "template": "Get {app} going somewhere for me.", "missing": "device"},
+    {"tool_name": "computer_close_application", "template": "Close {app}.", "missing": "device"},
+    {"tool_name": "computer_get_volume", "template": "What is the volume?", "missing": "device"},
+    {"tool_name": "computer_set_volume", "template": "Set the volume to {volume} percent.", "missing": "device"},
+    {"tool_name": "computer_list_running_applications", "template": "What apps are running?", "missing": "device"},
+    {"tool_name": "device_get_status", "template": "Check whether my computer is online.", "missing": "device"},
+    {"tool_name": "computer_launch_application", "template": "Open an app on my {device}.", "missing": "application"},
+    {"tool_name": "computer_close_application", "template": "Close the app on my {device}.", "missing": "application"},
+    {"tool_name": "timer_cancel", "template": "Cancel my timer.", "missing": "timer_id"},
+    {"tool_name": "timer_cancel", "template": "Stop the countdown.", "missing": "timer_id"},
+    {"tool_name": "computer_launch_application", "template": "Open something for me.", "missing": "application_and_device"}
+]
+
+AMBIGUITY_EVAL_V021 = [
+    {"tool_name": "computer_launch_application", "template": "Put {app} up somewhere for me.", "missing": "device"},
+    {"tool_name": "computer_close_application", "template": "Get {app} closed on one of my machines.", "missing": "device"},
+    {"tool_name": "computer_get_volume", "template": "What's my sound set to?", "missing": "device"},
+    {"tool_name": "computer_set_volume", "template": "Set my audio to {volume}%.", "missing": "device"},
+    {"tool_name": "computer_list_running_applications", "template": "What is open at the moment?", "missing": "device"},
+    {"tool_name": "device_get_status", "template": "Is one of my computers online?", "missing": "device"},
+    {"tool_name": "computer_launch_application", "template": "Launch a program on my {device}.", "missing": "application"},
+    {"tool_name": "computer_close_application", "template": "Close an application on my {device}.", "missing": "application"},
+    {"tool_name": "timer_cancel", "template": "Cancel the timer I mean.", "missing": "timer_id"},
+    {"tool_name": "computer_launch_application", "template": "Start something for me.", "missing": "application_and_device"}
+]
+
+CLARIFICATIONS_V021 = {
+    "device": [
+        "Which computer should I use?",
+        "Which of your computers do you mean?",
+        "Do you mean your gaming PC or laptop?",
+        "Which machine should I use?",
+        "Which device should I apply that to?"
+    ],
+    "application": [
+        "Which application do you mean?",
+        "Which app should I use?",
+        "What application should I act on?",
+        "Which program do you mean?"
+    ],
+    "timer_id": [
+        "Which timer do you mean?",
+        "Which timer should I cancel?",
+        "What timer ID should I use?",
+        "Which countdown are you referring to?"
+    ],
+    "application_and_device": [
+        "Which application and computer do you mean?",
+        "What should I open, and on which computer?",
+        "Which app should I start on which device?"
+    ]
+}
 
 def choose_device(
     rng: random.Random,
@@ -1091,6 +1262,87 @@ def make_ambiguity_example(
                 ),
             },
         ],
+    }
+
+
+def ambiguity_resolution_text(
+    missing: str,
+    values: dict[str, Any],
+) -> str:
+    if missing == "device":
+        return values["device_text"]
+
+    if missing == "application":
+        return values["application_text"]
+
+    if missing == "timer_id":
+        return values["timer_id"]
+
+    if missing == "application_and_device":
+        return (
+            f"{values['application_text']} on my "
+            f"{values['device_text']}"
+        )
+
+    raise ValueError(
+        "Unsupported ambiguity type: "
+        f"{missing}"
+    )
+
+
+def make_ambiguity_example_v021(
+    rng: random.Random,
+    phrases: list[dict[str, str]],
+) -> dict[str, Any]:
+    specification = rng.choice(phrases)
+    tool_name = specification["tool_name"]
+    template = specification["template"]
+    missing = specification["missing"]
+
+    values = sample_values(rng)
+    user_text = format_phrase(template, values)
+
+    messages = [
+        {
+            "role": "system",
+            "content": build_runtime_context(rng, {tool_name}),
+        },
+        {
+            "role": "user",
+            "content": user_text,
+        },
+        {
+            "role": "assistant",
+            "content": clarify(
+                rng.choice(CLARIFICATIONS_V021[missing])
+            ),
+        },
+    ]
+
+    if rng.random() < 0.55:
+        messages.extend([
+            {
+                "role": "user",
+                "content": ambiguity_resolution_text(
+                    missing,
+                    values,
+                ),
+            },
+            {
+                "role": "assistant",
+                "content": tool_call(
+                    tool_name,
+                    arguments_for_tool(
+                        tool_name,
+                        values,
+                    ),
+                ),
+            },
+        ])
+
+    return {
+        "category": "ambiguity",
+        "messages": messages,
     }
 
 
@@ -1675,6 +1927,113 @@ ERRORS = [
 ]
 
 
+ERROR_BY_CODE = {
+    code: message
+    for code, message in ERRORS
+}
+
+TOOL_FAILURE_CODES = {
+    "device_list": [
+        "TIMEOUT",
+        "PERMISSION_DENIED",
+        "TOOL_EXECUTION_FAILED",
+    ],
+    "device_get_status": [
+        "DEVICE_NOT_FOUND",
+        "DEVICE_OFFLINE",
+        "TIMEOUT",
+        "PERMISSION_DENIED",
+        "TOOL_EXECUTION_FAILED",
+    ],
+    "application_list": [
+        "TIMEOUT",
+        "PERMISSION_DENIED",
+        "TOOL_EXECUTION_FAILED",
+    ],
+    "computer_launch_application": [
+        "DEVICE_NOT_FOUND",
+        "DEVICE_OFFLINE",
+        "APPLICATION_NOT_FOUND",
+        "PERMISSION_DENIED",
+        "TIMEOUT",
+        "TOOL_EXECUTION_FAILED",
+    ],
+    "computer_close_application": [
+        "DEVICE_NOT_FOUND",
+        "DEVICE_OFFLINE",
+        "APPLICATION_NOT_FOUND",
+        "PERMISSION_DENIED",
+        "TIMEOUT",
+        "TOOL_EXECUTION_FAILED",
+    ],
+    "computer_list_running_applications": [
+        "DEVICE_NOT_FOUND",
+        "DEVICE_OFFLINE",
+        "PERMISSION_DENIED",
+        "TIMEOUT",
+        "TOOL_EXECUTION_FAILED",
+    ],
+    "computer_get_volume": [
+        "DEVICE_NOT_FOUND",
+        "DEVICE_OFFLINE",
+        "PERMISSION_DENIED",
+        "TIMEOUT",
+        "TOOL_EXECUTION_FAILED",
+    ],
+    "computer_set_volume": [
+        "DEVICE_NOT_FOUND",
+        "DEVICE_OFFLINE",
+        "INVALID_ARGUMENT",
+        "PERMISSION_DENIED",
+        "TIMEOUT",
+        "TOOL_EXECUTION_FAILED",
+    ],
+    "timer_create": [
+        "INVALID_ARGUMENT",
+        "PERMISSION_DENIED",
+        "TIMEOUT",
+        "TOOL_EXECUTION_FAILED",
+    ],
+    "timer_list": [
+        "PERMISSION_DENIED",
+        "TIMEOUT",
+        "TOOL_EXECUTION_FAILED",
+    ],
+    "timer_cancel": [
+        "TIMER_NOT_FOUND",
+        "PERMISSION_DENIED",
+        "TIMEOUT",
+        "TOOL_EXECUTION_FAILED",
+    ],
+}
+
+
+def choose_failure_for_tool(
+    rng: random.Random,
+    tool_name: str,
+) -> tuple[str, str]:
+    try:
+        codes = TOOL_FAILURE_CODES[
+            tool_name
+        ]
+    except KeyError as exc:
+        raise ValueError(
+            "Unsupported tool for failure generation: "
+            f"{tool_name}"
+        ) from exc
+
+    error_code = rng.choice(
+        codes
+    )
+
+    return (
+        error_code,
+        ERROR_BY_CODE[
+            error_code
+        ],
+    )
+
+
 def success_result_for_tool(
     tool_name: str,
     arguments: dict[str, Any],
@@ -2023,8 +2382,9 @@ def make_failure_followup_example(
     (
         error_code,
         error_message,
-    ) = rng.choice(
-        ERRORS
+    ) = choose_failure_for_tool(
+        rng,
+        tool_name,
     )
 
     tool_result = {
@@ -2156,7 +2516,7 @@ def generate_split(
             HARD_NEGATIVE_TRAIN
         )
         ambiguity_phrases = (
-            AMBIGUITY_TRAIN
+            AMBIGUITY_TRAIN_V021
         )
 
     elif split == "eval":
@@ -2165,7 +2525,7 @@ def generate_split(
             HARD_NEGATIVE_EVAL
         )
         ambiguity_phrases = (
-            AMBIGUITY_EVAL
+            AMBIGUITY_EVAL_V021
         )
 
     else:
@@ -2188,7 +2548,7 @@ def generate_split(
             )
         ),
         "ambiguity": (
-            lambda: make_ambiguity_example(
+            lambda: make_ambiguity_example_v021(
                 rng,
                 ambiguity_phrases,
             )
@@ -2413,7 +2773,7 @@ def main() -> None:
     )
 
     print(
-        "Atlas Tools Dataset v0.2"
+        "Atlas Tools Dataset v0.2.1"
     )
 
     print()

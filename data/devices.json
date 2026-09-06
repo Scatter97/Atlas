@@ -1,0 +1,22 @@
+{
+  "devices": {
+    "gaming_pc": {
+      "name": "Gaming PC",
+      "type": "computer",
+      "aliases": [
+        "gaming pc",
+        "desktop",
+        "main pc"
+      ],
+      "online": true
+    },
+    "laptop": {
+      "name": "Laptop",
+      "type": "computer",
+      "aliases": [
+        "laptop"
+      ],
+      "online": true
+    }
+  }
+}

@@ -351,7 +351,7 @@ class MultiModelProtocolTests(
 
     def test_on_demand_unloads_after_request(
         self,
-    ) -> None:
+        ) -> None:
         spec = ModelSpec(
             model="test",
             residency="on_demand",
@@ -374,3 +374,299 @@ class MultiModelProtocolTests(
                 residency="persistent",
                 memory="hybrid",
             )
+
+
+class ExpandedToolTests(
+    unittest.TestCase
+):
+    def setUp(
+        self,
+    ) -> None:
+        self.devices = DeviceRegistry(
+            {
+                "gaming_pc": {
+                    "name": "Gaming PC",
+                    "type": "computer",
+                    "aliases": [
+                        "desktop"
+                    ],
+                    "online": True,
+                }
+            }
+        )
+
+        self.applications = (
+            ApplicationRegistry(
+                {
+                    "steam": {
+                        "name": "Steam",
+                        "aliases": [
+                            "steam"
+                        ],
+                    },
+                    "firefox": {
+                        "name": "Firefox",
+                        "aliases": [
+                            "firefox"
+                        ],
+                    },
+                }
+            )
+        )
+
+        self.tools = (
+            build_mock_tool_registry(
+                devices=self.devices,
+                applications=(
+                    self.applications
+                ),
+            )
+        )
+
+    def test_application_list(
+        self,
+    ) -> None:
+        result = self.tools.execute(
+            call_id="call_test",
+            name="application_list",
+            arguments={},
+        )
+
+        self.assertEqual(
+            result.status,
+            "success",
+        )
+
+        self.assertEqual(
+            len(
+                result.result[
+                    "applications"
+                ]
+            ),
+            2,
+        )
+
+    def test_launch_is_stateful(
+        self,
+    ) -> None:
+        first = self.tools.execute(
+            call_id="call_one",
+            name=(
+                "computer_launch_application"
+            ),
+            arguments={
+                "device_id": "gaming_pc",
+                "application_id": "steam",
+            },
+        )
+
+        second = self.tools.execute(
+            call_id="call_two",
+            name=(
+                "computer_launch_application"
+            ),
+            arguments={
+                "device_id": "gaming_pc",
+                "application_id": "steam",
+            },
+        )
+
+        self.assertFalse(
+            first.result[
+                "already_running"
+            ]
+        )
+
+        self.assertTrue(
+            second.result[
+                "already_running"
+            ]
+        )
+
+    def test_close_application(
+        self,
+    ) -> None:
+        self.tools.execute(
+            call_id="call_launch",
+            name=(
+                "computer_launch_application"
+            ),
+            arguments={
+                "device_id": "gaming_pc",
+                "application_id": "steam",
+            },
+        )
+
+        result = self.tools.execute(
+            call_id="call_close",
+            name=(
+                "computer_close_application"
+            ),
+            arguments={
+                "device_id": "gaming_pc",
+                "application_id": "steam",
+            },
+        )
+
+        self.assertEqual(
+            result.status,
+            "success",
+        )
+
+        self.assertTrue(
+            result.result[
+                "closed"
+            ]
+        )
+
+    def test_running_application_list(
+        self,
+    ) -> None:
+        self.tools.execute(
+            call_id="call_launch",
+            name=(
+                "computer_launch_application"
+            ),
+            arguments={
+                "device_id": "gaming_pc",
+                "application_id": "firefox",
+            },
+        )
+
+        result = self.tools.execute(
+            call_id="call_list",
+            name=(
+                "computer_list_"
+                "running_applications"
+            ),
+            arguments={
+                "device_id": "gaming_pc",
+            },
+        )
+
+        self.assertEqual(
+            result.result[
+                "application_ids"
+            ],
+            [
+                "firefox"
+            ],
+        )
+
+    def test_volume_is_stateful(
+        self,
+    ) -> None:
+        set_result = (
+            self.tools.execute(
+                call_id="call_set",
+                name=(
+                    "computer_set_volume"
+                ),
+                arguments={
+                    "device_id": (
+                        "gaming_pc"
+                    ),
+                    "volume_percent": 35,
+                },
+            )
+        )
+
+        get_result = (
+            self.tools.execute(
+                call_id="call_get",
+                name=(
+                    "computer_get_volume"
+                ),
+                arguments={
+                    "device_id": (
+                        "gaming_pc"
+                    ),
+                },
+            )
+        )
+
+        self.assertEqual(
+            set_result.result[
+                "volume_percent"
+            ],
+            35,
+        )
+
+        self.assertEqual(
+            get_result.result[
+                "volume_percent"
+            ],
+            35,
+        )
+
+    def test_timer_list_and_cancel(
+        self,
+    ) -> None:
+        created = (
+            self.tools.execute(
+                call_id="call_create",
+                name="timer_create",
+                arguments={
+                    "duration_seconds": 60,
+                    "label": "Test",
+                },
+            )
+        )
+
+        timer_id = (
+            created.result[
+                "timer_id"
+            ]
+        )
+
+        listed = self.tools.execute(
+            call_id="call_list",
+            name="timer_list",
+            arguments={},
+        )
+
+        self.assertEqual(
+            len(
+                listed.result[
+                    "timers"
+                ]
+            ),
+            1,
+        )
+
+        cancelled = (
+            self.tools.execute(
+                call_id="call_cancel",
+                name="timer_cancel",
+                arguments={
+                    "timer_id": timer_id,
+                },
+            )
+        )
+
+        self.assertTrue(
+            cancelled.result[
+                "cancelled"
+            ]
+        )
+
+        listed_after = (
+            self.tools.execute(
+                call_id=(
+                    "call_list_after"
+                ),
+                name="timer_list",
+                arguments={},
+            )
+        )
+
+        self.assertEqual(
+            listed_after.result[
+                "timers"
+            ],
+            [],
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()
